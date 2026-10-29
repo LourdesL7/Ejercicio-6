@@ -1,3 +1,4 @@
+package Modelo;
 import javax.swing.JComponent;
 
 public interface InterfazRenderizable

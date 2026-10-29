@@ -1,56 +1,68 @@
+package Modelo;
 import java.awt.BorderLayout;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 
-public class AlertWidget
+public class TaskWidget
         implements InterfazRenderizable, InterfazInteractivo {
 
     private int id;
     private String titulo;
-    private String mensaje;
-    private String prioridad;
-    private boolean leida;
+    private List<String> tareasPendientes;
+    private List<String> tareasCompletadas;
     private double memoriaKB;
     private JPanel panel;
     private JTextArea texto;
     private JButton boton;
 
-    public AlertWidget(int id, String titulo, String mensaje,
-                       String prioridad, double memoriaKB) {
+    public TaskWidget(int id, String titulo,
+                      List<String> tareas, double memoriaKB) {
         this.id = id;
         this.titulo = titulo;
-        this.mensaje = mensaje;
-        this.prioridad = prioridad;
+        this.tareasPendientes = new ArrayList<>(tareas);
+        this.tareasCompletadas = new ArrayList<>();
         this.memoriaKB = memoriaKB;
 
         panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createTitledBorder(titulo));
-        texto = new JTextArea(Compartir());
+        texto = new JTextArea();
         texto.setEditable(false);
         texto.setLineWrap(true);
         texto.setWrapStyleWord(true);
-        boton = new JButton("Marcar como leída");
+        boton = new JButton("Completar primera pendiente");
         boton.addActionListener(e -> interactuar());
-        panel.add(texto, BorderLayout.CENTER);
+        panel.add(new JScrollPane(texto), BorderLayout.CENTER);
         panel.add(boton, BorderLayout.SOUTH);
+        actualizarVista();
     }
 
     @Override
     public void interactuar() {
-        leida = true;
+        if (!tareasPendientes.isEmpty()) {
+            tareasCompletadas.add(tareasPendientes.remove(0));
+        }
+        actualizarVista();
+    }
+
+    private void actualizarVista() {
         texto.setText(Compartir());
-        boton.setEnabled(false);
+        boton.setEnabled(!tareasPendientes.isEmpty());
     }
 
     @Override
     public void DibujarContenido(String contenido) {
         panel.setToolTipText(contenido);
-        texto.setText(Compartir());
+        actualizarVista();
     }
 
     @Override
     public String Compartir() {
-        return mensaje + "\nPrioridad: " + prioridad
-                + "\nEstado: " + (leida ? "Leída" : "Pendiente de leer");
+        StringBuilder resultado = new StringBuilder("Pendientes:\n");
+        for (String tarea : tareasPendientes) resultado.append("• ").append(tarea).append('\n');
+        resultado.append("\nCompletadas:\n");
+        for (String tarea : tareasCompletadas) resultado.append("✓ ").append(tarea).append('\n');
+        return resultado.toString();
     }
 
     @Override
